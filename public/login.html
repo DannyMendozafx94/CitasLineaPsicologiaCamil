@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Consultorio Psicologico Infantil "Floreser"</title>
+    <link rel="stylesheet" href="/login.css" />
+  </head>
+  <body>
+    <main class="login-page">
+      <section class="side-art left-art" aria-hidden="true">
+        <div class="picture pic-sun"></div>
+        <div class="picture pic-rainbow"></div>
+        <div class="picture pic-heart"></div>
+        <div class="armchair"></div>
+        <div class="cloud-cushion"></div>
+        <div class="teddy"></div>
+        <div class="mini-table">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </section>
+
+      <section class="login-card">
+        <div class="leaf leaf-top-left"></div>
+        <div class="leaf leaf-top-right"></div>
+        <div class="leaf leaf-bottom-left"></div>
+        <div class="leaf leaf-bottom-right"></div>
+
+        <div class="logo-mark" aria-hidden="true">
+          <svg viewBox="0 0 64 64">
+            <path
+              d="M31 10c-10.5 0-19 8.5-19 19 0 7.3 4.1 13.6 10.1 16.8V55l8.2-4.2c.6.1 1.1.1 1.7.1 10.5 0 19-8.5 19-19S41.5 10 31 10Z"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M25 27c-2.8-4.9 3.2-8.8 6.5-5.2 3.3-3.6 9.2.3 6.5 5.2-1.8 3.3-6.5 6.8-6.5 6.8S26.8 30.3 25 27Z"
+              fill="#f39e7b"
+            />
+          </svg>
+        </div>
+
+        <header class="login-header">
+          <h1>Bienvenida Camila</h1>
+          <p>Consultorio Psicologico Infantil Floreser</p>
+        </header>
+
+        <form id="loginForm" class="login-form">
+          <label>
+            <span class="field-title">Correo electronico</span>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="tu@email.com"
+              required
+              autocomplete="username"
+            />
+          </label>
+
+          <label>
+            <span class="field-title">Contraseña</span>
+            <div class="password-wrap">
+              <input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="Ingresa tu contraseña"
+                required
+                autocomplete="current-password"
+              />
+              <button id="togglePassword" class="ghost-icon" type="button">Ver</button>
+            </div>
+          </label>
+
+          <div class="login-row">
+            <label class="remember-box">
+              <input id="rememberMe" name="rememberMe" type="checkbox" />
+              <span>Recordarme</span>
+            </label>
+            <button id="forgotPassword" class="text-link" type="button">
+              Olvidaste tu contraseña?
+            </button>
+          </div>
+
+          <button class="login-button" type="submit">Iniciar sesion</button>
+
+          <div class="separator"><span>o</span></div>
+
+          <button id="googleButton" class="google-button" type="button">
+            <span class="google-badge">G</span>
+            Continuar con Google
+          </button>
+        </form>
+
+        <p class="login-copy">
+          Cada pequeno paso cuenta.<br />
+          Gracias por transformar vidas.
+        </p>
+      </section>
+
+      <section class="side-art right-art" aria-hidden="true">
+        <div class="brain"></div>
+        <div class="floating-heart heart-one"></div>
+        <div class="floating-heart heart-two"></div>
+        <div class="floating-heart heart-three"></div>
+        <div class="kids-floor">
+          <div class="kid kid-girl"></div>
+          <div class="kid kid-boy"></div>
+        </div>
+        <div class="bookcase"></div>
+      </section>
+    </main>
+
+    <footer class="login-footer">Plataforma segura • Citas y recordatorios</footer>
+    <div id="feedback" class="feedback" aria-live="polite"></div>
+    <script src="/login.js"></script>
+  </body>
+</html>

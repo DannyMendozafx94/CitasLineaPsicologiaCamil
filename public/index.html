@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agenda de Citas Psicologicas</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="dashboard-topbar">
+        <div>
+          <p class="eyebrow">Consultorio Psicologico Infantil "Floreser"</p>
+          <h1>Agenda pacientes, programa citas y controla recordatorios.</h1>
+          <p class="hero-copy">
+            Registra pacientes, crea nuevas citas y revisa los recordatorios
+            internos de 24 horas y 2 horas antes de cada atencion.
+          </p>
+        </div>
+        <div class="admin-card">
+          <span class="note-label">Sesion activa</span>
+          <strong id="adminName">Psicologa Administradora</strong>
+          <p id="adminEmail">admin@psicologa.com</p>
+          <p>
+            El panel esta protegido con inicio de sesion de administrador.
+          </p>
+          <button id="logoutButton" class="secondary-button" type="button">
+            Cerrar sesion
+          </button>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="panel panel-overview">
+          <div class="panel-header">
+            <h2>Resumen</h2>
+            <button id="refreshButton" class="secondary-button" type="button">
+              Actualizar
+            </button>
+          </div>
+          <div class="stats-grid">
+            <article class="stat-card">
+              <span>Pacientes</span>
+              <strong id="patientsCount">0</strong>
+            </article>
+            <article class="stat-card">
+              <span>Citas futuras</span>
+              <strong id="appointmentsCount">0</strong>
+            </article>
+            <article class="stat-card">
+              <span>Recordatorios programados</span>
+              <strong id="scheduledRemindersCount">0</strong>
+            </article>
+            <article class="stat-card">
+              <span>Recordatorios enviados</span>
+              <strong id="sentRemindersCount">0</strong>
+            </article>
+          </div>
+        </section>
+
+        <section class="form-grid">
+          <section class="panel">
+            <div class="panel-header">
+              <h2>Nuevo paciente</h2>
+            </div>
+            <form id="patientForm" class="form">
+              <label>
+                Nombre completo
+                <input name="nombreCompleto" placeholder="Ej. Maria Perez" required />
+              </label>
+              <label>
+                Telefono
+                <input name="telefono" placeholder="Ej. 0999999999" required />
+              </label>
+              <label>
+                Correo electronico
+                <input name="email" type="email" placeholder="Ej. paciente@correo.com" />
+              </label>
+              <label>
+                Fecha de nacimiento
+                <input name="fechaNacimiento" type="date" />
+              </label>
+              <label>
+                Motivo de consulta
+                <input name="motivoConsulta" placeholder="Ej. Ansiedad, duelo o estres" />
+              </label>
+              <label>
+                Notas iniciales
+                <textarea name="notas" rows="4" placeholder="Observaciones relevantes"></textarea>
+              </label>
+              <button class="primary-button" type="submit">Guardar paciente</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <h2>Programar cita</h2>
+            </div>
+            <form id="appointmentForm" class="form">
+              <label>
+                Paciente
+                <select id="patientSelect" name="pacienteId" required>
+                  <option value="">Selecciona un paciente</option>
+                </select>
+              </label>
+              <label>
+                Fecha y hora
+                <input name="fechaHora" type="datetime-local" required />
+              </label>
+              <label>
+                Modalidad
+                <select name="modalidad" required>
+                  <option value="Presencial">Presencial</option>
+                  <option value="Virtual">Virtual</option>
+                </select>
+              </label>
+              <label>
+                Motivo de la cita
+                <input name="motivo" placeholder="Ej. Seguimiento terapeutico" />
+              </label>
+              <label>
+                Notas de la cita
+                <textarea name="notas" rows="4" placeholder="Detalles importantes"></textarea>
+              </label>
+              <button class="primary-button" type="submit">Crear cita</button>
+            </form>
+          </section>
+        </section>
+
+        <section class="lists-grid">
+          <section class="panel">
+            <div class="panel-header">
+              <h2>Pacientes registrados</h2>
+            </div>
+            <div id="patientsList" class="stack-list empty-state">
+              Aun no hay pacientes.
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <h2>Proximas citas</h2>
+            </div>
+            <div id="appointmentsList" class="stack-list empty-state">
+              Aun no hay citas agendadas.
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <h2>Recordatorios</h2>
+            </div>
+            <div id="remindersList" class="stack-list empty-state">
+              Aun no hay recordatorios programados.
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <div id="feedback" class="feedback" aria-live="polite"></div>
+    <script src="/app.js"></script>
+  </body>
+</html>

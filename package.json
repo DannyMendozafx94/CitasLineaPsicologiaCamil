@@ -1,0 +1,15 @@
+{
+  "name": "app-citas-recordatorio",
+  "version": "1.0.0",
+  "description": "Backend en Node.js con Express para recordatorio de citas",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

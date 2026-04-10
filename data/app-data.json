@@ -1,0 +1,40 @@
+{
+  "pacientes": [
+    {
+      "id": "057bf7d9-669d-41bf-86fe-9d537ca0c27d",
+      "nombreCompleto": "Pamela Daniela Quiroz Palma",
+      "telefono": "0964213546",
+      "email": "pamequiroz12@gmail.com",
+      "fechaNacimiento": "2015-07-08",
+      "motivoConsulta": "Test de comportamiento",
+      "notas": "Test completado",
+      "createdAt": "2026-04-09T19:06:31.248Z"
+    }
+  ],
+  "citas": [
+    {
+      "id": "1c2a93d1-2c80-45ad-8c57-c3f117c1edcd",
+      "pacienteId": "057bf7d9-669d-41bf-86fe-9d537ca0c27d",
+      "fechaHora": "2026-04-10T17:00:00.000Z",
+      "modalidad": "Presencial",
+      "motivo": "Seguimiento",
+      "notas": "Establecer conversación con padres de familia.",
+      "createdAt": "2026-04-09T19:07:27.923Z"
+    }
+  ],
+  "recordatorios": [
+    {
+      "id": "895161a6-96ae-4102-bd2e-3322b403bd20",
+      "citaId": "1c2a93d1-2c80-45ad-8c57-c3f117c1edcd",
+      "pacienteId": "057bf7d9-669d-41bf-86fe-9d537ca0c27d",
+      "tipo": "2h",
+      "horasAntes": 2,
+      "mensaje": "Avisar a Pamela Daniela Quiroz Palma 2 horas antes de la cita del 10 abr 2026, 12:00 p. m..",
+      "programadoPara": "2026-04-10T15:00:00.000Z",
+      "estado": "programado",
+      "canal": "interno",
+      "enviadoEn": null,
+      "createdAt": "2026-04-09T19:07:27.952Z"
+    }
+  ]
+}
