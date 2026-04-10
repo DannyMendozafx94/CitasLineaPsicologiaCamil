@@ -44,6 +44,49 @@ const createBadge = (text, type = 'neutral') => {
   return span;
 };
 
+const createDeleteButton = (label, onClick) => {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'danger-button';
+  button.textContent = label;
+  button.addEventListener('click', onClick);
+  return button;
+};
+
+const deletePaciente = async (patient) => {
+  const confirmed = window.confirm(
+    `Se eliminara el paciente ${patient.nombreCompleto} y tambien sus citas y recordatorios.`
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  await fetchJson(`/api/pacientes/${patient.id}`, {
+    method: 'DELETE',
+  });
+
+  await loadDashboard();
+  setFeedback('Paciente eliminado correctamente.');
+};
+
+const deleteCita = async (appointment) => {
+  const confirmed = window.confirm(
+    `Se eliminara la cita de ${appointment.pacienteNombre}.`
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  await fetchJson(`/api/citas/${appointment.id}`, {
+    method: 'DELETE',
+  });
+
+  await loadDashboard();
+  setFeedback('Cita eliminada correctamente.');
+};
+
 const renderPatients = (patients) => {
   const container = document.getElementById('patientsList');
 
@@ -65,6 +108,18 @@ const renderPatients = (patients) => {
       <p>Correo: ${patient.email || 'No registrado'}</p>
       <p>Motivo: ${patient.motivoConsulta || 'Sin especificar'}</p>
     `;
+    const actions = document.createElement('div');
+    actions.className = 'badge-row';
+    actions.appendChild(
+      createDeleteButton('Eliminar paciente', async () => {
+        try {
+          await deletePaciente(patient);
+        } catch (error) {
+          setFeedback(error.message, true);
+        }
+      })
+    );
+    card.appendChild(actions);
     container.appendChild(card);
   });
 };
@@ -96,6 +151,15 @@ const renderAppointments = (appointments) => {
     badgeRow.appendChild(createBadge('Cita futura', 'success'));
     badgeRow.appendChild(
       createBadge(`${appointment.recordatorios.length} recordatorios`, 'neutral')
+    );
+    badgeRow.appendChild(
+      createDeleteButton('Eliminar cita', async () => {
+        try {
+          await deleteCita(appointment);
+        } catch (error) {
+          setFeedback(error.message, true);
+        }
+      })
     );
     card.appendChild(badgeRow);
     container.appendChild(card);

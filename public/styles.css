@@ -200,7 +200,8 @@ textarea:focus {
 }
 
 .primary-button,
-.secondary-button {
+.secondary-button,
+.danger-button {
   border: none;
   border-radius: 999px;
   padding: 13px 18px;
@@ -219,8 +220,15 @@ textarea:focus {
   color: var(--accent-dark);
 }
 
+.danger-button {
+  padding: 8px 12px;
+  background: rgba(174, 57, 57, 0.1);
+  color: #a33a3a;
+}
+
 .primary-button:hover,
-.secondary-button:hover {
+.secondary-button:hover,
+.danger-button:hover {
   transform: translateY(-1px);
 }
 

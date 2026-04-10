@@ -87,4 +87,35 @@ const createCita = (payload) => {
   return enrichCita(cita, data.pacientes, data.recordatorios);
 };
 
-module.exports = { createCita, listCitas };
+const deleteCita = (citaId) => {
+  const id = normalizeValue(citaId);
+
+  if (!id) {
+    throw new Error('Debes indicar la cita a eliminar.');
+  }
+
+  const data = readData();
+  const cita = data.citas.find((item) => item.id === id);
+
+  if (!cita) {
+    throw new Error('La cita no existe.');
+  }
+
+  const deletedReminders = data.recordatorios.filter(
+    (recordatorio) => recordatorio.citaId === id
+  ).length;
+
+  data.citas = data.citas.filter((item) => item.id !== id);
+  data.recordatorios = data.recordatorios.filter(
+    (recordatorio) => recordatorio.citaId !== id
+  );
+
+  writeData(data);
+
+  return {
+    deletedCitaId: id,
+    deletedRecordatorios: deletedReminders,
+  };
+};
+
+module.exports = { createCita, deleteCita, listCitas };
