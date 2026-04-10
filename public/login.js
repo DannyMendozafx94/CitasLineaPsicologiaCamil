@@ -36,8 +36,8 @@ const checkActiveSession = async () => {
     await fetchJson('/api/auth/session');
     window.location.href = '/dashboard';
   } catch (error) {
-    emailInput.value = 'admin@psicologa.com';
-    passwordInput.value = 'admin123';
+    emailInput.value = '';
+    passwordInput.value = '';
   }
 };
 
