@@ -31,11 +31,10 @@
       "horasAntes": 2,
       "mensaje": "Avisar a Pamela Daniela Quiroz Palma 2 horas antes de la cita del 10 abr 2026, 12:00 p. m..",
       "programadoPara": "2026-04-10T15:00:00.000Z",
-      "estado": "programado",
+      "estado": "enviado",
       "canal": "interno",
-      "enviadoEn": null,
+      "enviadoEn": "2026-04-10T19:45:20.691Z",
       "createdAt": "2026-04-09T19:07:27.952Z"
     }
   ]
 }
-

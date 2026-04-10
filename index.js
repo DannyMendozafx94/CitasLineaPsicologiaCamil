@@ -8,6 +8,8 @@ const {
   requirePageAuth,
   redirectIfAuthenticated,
 } = require('./middleware/authMiddleware');
+const { initializeDatabase } = require('./services/database');
+const { importLegacyDataIfNeeded } = require('./services/bootstrapDataService');
 const { initializeReminderWorker } = require('./services/recordatoriosService');
 
 const app = express();
@@ -31,7 +33,17 @@ app.get('/dashboard', requirePageAuth, (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api', requireApiAuth, apiRoutes);
 
-app.listen(PORT, () => {
-  initializeReminderWorker();
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+const startServer = async () => {
+  await initializeDatabase();
+  await importLegacyDataIfNeeded();
+  await initializeReminderWorker();
+
+  app.listen(PORT, () => {
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  });
+};
+
+startServer().catch((error) => {
+  console.error('No se pudo iniciar la aplicacion:', error.message);
+  process.exit(1);
 });

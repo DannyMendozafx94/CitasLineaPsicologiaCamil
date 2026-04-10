@@ -4,22 +4,26 @@ const {
   listPacientes,
 } = require('../services/pacientesService');
 
-const getPacientes = (req, res) => {
-  res.json(listPacientes());
+const getPacientes = async (req, res) => {
+  try {
+    res.json(await listPacientes());
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
-const postPaciente = (req, res) => {
+const postPaciente = async (req, res) => {
   try {
-    const paciente = createPaciente(req.body);
+    const paciente = await createPaciente(req.body);
     res.status(201).json(paciente);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
 
-const removePaciente = (req, res) => {
+const removePaciente = async (req, res) => {
   try {
-    const result = deletePaciente(req.params.id);
+    const result = await deletePaciente(req.params.id);
     res.json(result);
   } catch (error) {
     res.status(400).json({ error: error.message });
