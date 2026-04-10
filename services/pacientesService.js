@@ -116,6 +116,154 @@ const createPaciente = async (payload) => {
   return paciente;
 };
 
+const refreshPatientReminderMessages = async (updater, paciente) => {
+  const citasResult = await updater.query(
+    `
+      SELECT id, fecha_hora
+      FROM citas
+      WHERE paciente_id = $1
+    `,
+    [paciente.id]
+  );
+
+  for (const cita of citasResult.rows) {
+    const citaTexto = new Date(cita.fecha_hora).toLocaleString('es-EC', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
+
+    await updater.query(
+      `
+        UPDATE recordatorios
+        SET mensaje = CONCAT(
+          'Avisar a ',
+          $1,
+          ' ',
+          horas_antes,
+          ' horas antes de la cita del ',
+          $2,
+          '.'
+        )
+        WHERE cita_id = $3
+      `,
+      [paciente.nombreCompleto, citaTexto, cita.id]
+    );
+  }
+};
+
+const updatePaciente = async (pacienteId, payload) => {
+  const id = normalizeValue(pacienteId);
+  const nombreCompleto = normalizeValue(payload.nombreCompleto);
+  const telefono = normalizeValue(payload.telefono);
+  const email = normalizeValue(payload.email);
+  const fechaNacimiento = normalizeValue(payload.fechaNacimiento);
+  const motivoConsulta = normalizeValue(payload.motivoConsulta);
+  const notas = normalizeValue(payload.notas);
+
+  if (!id) {
+    throw new Error('Debes indicar el paciente a editar.');
+  }
+
+  if (!nombreCompleto) {
+    throw new Error('El nombre completo del paciente es obligatorio.');
+  }
+
+  if (!telefono) {
+    throw new Error('El telefono del paciente es obligatorio.');
+  }
+
+  if (DATABASE_CONFIGURED) {
+    return withTransaction(async (client) => {
+      const existingResult = await client.query(
+        'SELECT id, created_at FROM pacientes WHERE id = $1',
+        [id]
+      );
+
+      if (!existingResult.rowCount) {
+        throw new Error('El paciente no existe.');
+      }
+
+      await client.query(
+        `
+          UPDATE pacientes
+          SET
+            nombre_completo = $2,
+            telefono = $3,
+            email = $4,
+            fecha_nacimiento = $5,
+            motivo_consulta = $6,
+            notas = $7
+          WHERE id = $1
+        `,
+        [
+          id,
+          nombreCompleto,
+          telefono,
+          email || null,
+          fechaNacimiento || null,
+          motivoConsulta || null,
+          notas || null,
+        ]
+      );
+
+      const paciente = {
+        id,
+        nombreCompleto,
+        telefono,
+        email,
+        fechaNacimiento,
+        motivoConsulta,
+        notas,
+        createdAt: existingResult.rows[0].created_at.toISOString(),
+      };
+
+      await refreshPatientReminderMessages(client, paciente);
+      return paciente;
+    });
+  }
+
+  const data = readData();
+  const index = data.pacientes.findIndex((item) => item.id === id);
+
+  if (index === -1) {
+    throw new Error('El paciente no existe.');
+  }
+
+  const updatedPaciente = {
+    ...data.pacientes[index],
+    nombreCompleto,
+    telefono,
+    email,
+    fechaNacimiento,
+    motivoConsulta,
+    notas,
+  };
+
+  data.pacientes[index] = updatedPaciente;
+
+  data.recordatorios = data.recordatorios.map((recordatorio) => {
+    if (recordatorio.pacienteId !== id) {
+      return recordatorio;
+    }
+
+    const cita = data.citas.find((item) => item.id === recordatorio.citaId);
+    const citaTexto = cita
+      ? new Date(cita.fechaHora).toLocaleString('es-EC', {
+          dateStyle: 'medium',
+          timeStyle: 'short',
+        })
+      : '';
+
+    return {
+      ...recordatorio,
+      mensaje: `Avisar a ${nombreCompleto} ${recordatorio.horasAntes} horas antes de la cita del ${citaTexto}.`,
+    };
+  });
+
+  writeData(data);
+  return updatedPaciente;
+};
+
 const deletePaciente = async (pacienteId) => {
   const id = normalizeValue(pacienteId);
 
@@ -174,4 +322,9 @@ const deletePaciente = async (pacienteId) => {
   };
 };
 
-module.exports = { createPaciente, deletePaciente, listPacientes };
+module.exports = {
+  createPaciente,
+  deletePaciente,
+  listPacientes,
+  updatePaciente,
+};

@@ -3,9 +3,20 @@ const appointmentForm = document.getElementById('appointmentForm');
 const patientSelect = document.getElementById('patientSelect');
 const refreshButton = document.getElementById('refreshButton');
 const logoutButton = document.getElementById('logoutButton');
+const patientFormTitle = document.getElementById('patientFormTitle');
+const appointmentFormTitle = document.getElementById('appointmentFormTitle');
+const patientSubmitButton = document.getElementById('patientSubmitButton');
+const appointmentSubmitButton = document.getElementById('appointmentSubmitButton');
+const patientCancelButton = document.getElementById('patientCancelButton');
+const appointmentCancelButton = document.getElementById('appointmentCancelButton');
 const feedback = document.getElementById('feedback');
 const adminName = document.getElementById('adminName');
 const adminEmail = document.getElementById('adminEmail');
+
+const formState = {
+  editingPatientId: null,
+  editingAppointmentId: null,
+};
 
 const formatDateTime = (value) => {
   return new Date(value).toLocaleString('es-EC', {
@@ -51,6 +62,64 @@ const createDeleteButton = (label, onClick) => {
   button.textContent = label;
   button.addEventListener('click', onClick);
   return button;
+};
+
+const createSecondaryActionButton = (label, onClick) => {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'secondary-button secondary-button-inline';
+  button.textContent = label;
+  button.addEventListener('click', onClick);
+  return button;
+};
+
+const toDatetimeLocalValue = (value) => {
+  const date = new Date(value);
+  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+};
+
+const resetPatientFormState = () => {
+  formState.editingPatientId = null;
+  patientForm.reset();
+  patientFormTitle.textContent = 'Nuevo paciente';
+  patientSubmitButton.textContent = 'Guardar paciente';
+  patientCancelButton.classList.add('is-hidden');
+};
+
+const resetAppointmentFormState = () => {
+  formState.editingAppointmentId = null;
+  appointmentForm.reset();
+  appointmentFormTitle.textContent = 'Programar cita';
+  appointmentSubmitButton.textContent = 'Crear cita';
+  appointmentCancelButton.classList.add('is-hidden');
+};
+
+const startPatientEdit = (patient) => {
+  formState.editingPatientId = patient.id;
+  patientFormTitle.textContent = 'Editar paciente';
+  patientSubmitButton.textContent = 'Guardar cambios';
+  patientCancelButton.classList.remove('is-hidden');
+  patientForm.elements.nombreCompleto.value = patient.nombreCompleto || '';
+  patientForm.elements.telefono.value = patient.telefono || '';
+  patientForm.elements.email.value = patient.email || '';
+  patientForm.elements.fechaNacimiento.value = patient.fechaNacimiento || '';
+  patientForm.elements.motivoConsulta.value = patient.motivoConsulta || '';
+  patientForm.elements.notas.value = patient.notas || '';
+  patientForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+const startAppointmentEdit = (appointment) => {
+  formState.editingAppointmentId = appointment.id;
+  appointmentFormTitle.textContent = 'Editar cita';
+  appointmentSubmitButton.textContent = 'Guardar cambios';
+  appointmentCancelButton.classList.remove('is-hidden');
+  appointmentForm.elements.pacienteId.value = appointment.pacienteId || '';
+  appointmentForm.elements.fechaHora.value = toDatetimeLocalValue(appointment.fechaHora);
+  appointmentForm.elements.modalidad.value = appointment.modalidad || 'Presencial';
+  appointmentForm.elements.motivo.value = appointment.motivo || '';
+  appointmentForm.elements.notas.value = appointment.notas || '';
+  appointmentForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
 const deletePaciente = async (patient) => {
@@ -111,6 +180,9 @@ const renderPatients = (patients) => {
     const actions = document.createElement('div');
     actions.className = 'badge-row';
     actions.appendChild(
+      createSecondaryActionButton('Editar paciente', () => startPatientEdit(patient))
+    );
+    actions.appendChild(
       createDeleteButton('Eliminar paciente', async () => {
         try {
           await deletePaciente(patient);
@@ -151,6 +223,9 @@ const renderAppointments = (appointments) => {
     badgeRow.appendChild(createBadge('Cita futura', 'success'));
     badgeRow.appendChild(
       createBadge(`${appointment.recordatorios.length} recordatorios`, 'neutral')
+    );
+    badgeRow.appendChild(
+      createSecondaryActionButton('Editar cita', () => startAppointmentEdit(appointment))
     );
     badgeRow.appendChild(
       createDeleteButton('Eliminar cita', async () => {
@@ -253,19 +328,25 @@ patientForm.addEventListener('submit', async (event) => {
 
   const formData = new FormData(patientForm);
   const payload = Object.fromEntries(formData.entries());
+  const wasEditing = Boolean(formState.editingPatientId);
 
   try {
-    await fetchJson('/api/pacientes', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
+    await fetchJson(
+      wasEditing ? `/api/pacientes/${formState.editingPatientId}` : '/api/pacientes',
+      {
+        method: wasEditing ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      }
+    );
 
-    patientForm.reset();
+    resetPatientFormState();
     await loadDashboard();
-    setFeedback('Paciente guardado correctamente.');
+    setFeedback(
+      wasEditing ? 'Paciente actualizado correctamente.' : 'Paciente guardado correctamente.'
+    );
   } catch (error) {
     setFeedback(error.message, true);
   }
@@ -278,20 +359,38 @@ appointmentForm.addEventListener('submit', async (event) => {
   const payload = Object.fromEntries(formData.entries());
 
   try {
-    await fetchJson('/api/citas', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
+    await fetchJson(
+      formState.editingAppointmentId
+        ? `/api/citas/${formState.editingAppointmentId}`
+        : '/api/citas',
+      {
+        method: formState.editingAppointmentId ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      }
+    );
 
-    appointmentForm.reset();
+    const wasEditing = Boolean(formState.editingAppointmentId);
+    resetAppointmentFormState();
     await loadDashboard();
-    setFeedback('Cita creada y recordatorios programados.');
+    setFeedback(
+      wasEditing
+        ? 'Cita actualizada y recordatorios regenerados.'
+        : 'Cita creada y recordatorios programados.'
+    );
   } catch (error) {
     setFeedback(error.message, true);
   }
+});
+
+patientCancelButton.addEventListener('click', () => {
+  resetPatientFormState();
+});
+
+appointmentCancelButton.addEventListener('click', () => {
+  resetAppointmentFormState();
 });
 
 refreshButton.addEventListener('click', async () => {

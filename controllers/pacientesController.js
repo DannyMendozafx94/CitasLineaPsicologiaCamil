@@ -2,6 +2,7 @@ const {
   createPaciente,
   deletePaciente,
   listPacientes,
+  updatePaciente,
 } = require('../services/pacientesService');
 
 const getPacientes = async (req, res) => {
@@ -30,4 +31,13 @@ const removePaciente = async (req, res) => {
   }
 };
 
-module.exports = { getPacientes, postPaciente, removePaciente };
+const putPaciente = async (req, res) => {
+  try {
+    const paciente = await updatePaciente(req.params.id, req.body);
+    res.json(paciente);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+module.exports = { getPacientes, postPaciente, putPaciente, removePaciente };

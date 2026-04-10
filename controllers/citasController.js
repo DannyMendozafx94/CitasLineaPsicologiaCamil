@@ -1,4 +1,9 @@
-const { createCita, deleteCita, listCitas } = require('../services/citasService');
+const {
+  createCita,
+  deleteCita,
+  listCitas,
+  updateCita,
+} = require('../services/citasService');
 
 const getCitas = async (req, res) => {
   try {
@@ -26,4 +31,13 @@ const removeCita = async (req, res) => {
   }
 };
 
-module.exports = { getCitas, postCita, removeCita };
+const putCita = async (req, res) => {
+  try {
+    const cita = await updateCita(req.params.id, req.body);
+    res.json(cita);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+module.exports = { getCitas, postCita, putCita, removeCita };

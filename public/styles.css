@@ -165,6 +165,12 @@ label,
   gap: 14px;
 }
 
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 label {
   display: grid;
   gap: 8px;
@@ -220,10 +226,18 @@ textarea:focus {
   color: var(--accent-dark);
 }
 
+.secondary-button-inline {
+  padding: 8px 12px;
+}
+
 .danger-button {
   padding: 8px 12px;
   background: rgba(174, 57, 57, 0.1);
   color: #a33a3a;
+}
+
+.is-hidden {
+  display: none;
 }
 
 .primary-button:hover,

@@ -43,6 +43,40 @@ const mapRecordatorioRow = (row) => {
   };
 };
 
+const insertReminderWithClient = async (client, recordatorio) => {
+  await client.query(
+    `
+      INSERT INTO recordatorios (
+        id,
+        cita_id,
+        paciente_id,
+        tipo,
+        horas_antes,
+        mensaje,
+        programado_para,
+        estado,
+        canal,
+        enviado_en,
+        created_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    `,
+    [
+      recordatorio.id,
+      recordatorio.citaId,
+      recordatorio.pacienteId,
+      recordatorio.tipo,
+      recordatorio.horasAntes,
+      recordatorio.mensaje,
+      recordatorio.programadoPara,
+      recordatorio.estado,
+      recordatorio.canal,
+      recordatorio.enviadoEn,
+      recordatorio.createdAt,
+    ]
+  );
+};
+
 const enrichCita = (cita, pacientes, recordatorios) => {
   const paciente = pacientes.find((item) => item.id === cita.pacienteId);
   const reminders = recordatorios
@@ -170,37 +204,7 @@ const createCita = async (payload) => {
       const nuevosRecordatorios = buildReminderEntries(cita, paciente);
 
       for (const recordatorio of nuevosRecordatorios) {
-        await client.query(
-          `
-            INSERT INTO recordatorios (
-              id,
-              cita_id,
-              paciente_id,
-              tipo,
-              horas_antes,
-              mensaje,
-              programado_para,
-              estado,
-              canal,
-              enviado_en,
-              created_at
-            )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-          `,
-          [
-            recordatorio.id,
-            recordatorio.citaId,
-            recordatorio.pacienteId,
-            recordatorio.tipo,
-            recordatorio.horasAntes,
-            recordatorio.mensaje,
-            recordatorio.programadoPara,
-            recordatorio.estado,
-            recordatorio.canal,
-            recordatorio.enviadoEn,
-            recordatorio.createdAt,
-          ]
-        );
+        await insertReminderWithClient(client, recordatorio);
       }
 
       return {
@@ -235,6 +239,136 @@ const createCita = async (payload) => {
   writeData(data);
 
   return enrichCita(cita, data.pacientes, data.recordatorios);
+};
+
+const updateCita = async (citaId, payload) => {
+  const id = normalizeValue(citaId);
+  const pacienteId = normalizeValue(payload.pacienteId);
+  const fechaHora = normalizeValue(payload.fechaHora);
+  const modalidad = normalizeValue(payload.modalidad) || 'Presencial';
+  const motivo = normalizeValue(payload.motivo);
+  const notas = normalizeValue(payload.notas);
+
+  if (!id) {
+    throw new Error('Debes indicar la cita a editar.');
+  }
+
+  if (!pacienteId) {
+    throw new Error('Debes seleccionar un paciente.');
+  }
+
+  if (!fechaHora) {
+    throw new Error('Debes indicar la fecha y hora de la cita.');
+  }
+
+  if (!hasCompleteDateTime(fechaHora)) {
+    throw new Error('Debes ingresar una fecha y hora completas para la cita.');
+  }
+
+  const fechaCita = new Date(fechaHora);
+
+  if (Number.isNaN(fechaCita.getTime())) {
+    throw new Error('La fecha de la cita no es valida.');
+  }
+
+  if (fechaCita <= new Date()) {
+    throw new Error('La cita debe programarse en una fecha futura.');
+  }
+
+  if (DATABASE_CONFIGURED) {
+    return withTransaction(async (client) => {
+      const citaResult = await client.query(
+        'SELECT id, created_at FROM citas WHERE id = $1',
+        [id]
+      );
+
+      if (!citaResult.rowCount) {
+        throw new Error('La cita no existe.');
+      }
+
+      const pacienteResult = await client.query(
+        'SELECT id, nombre_completo FROM pacientes WHERE id = $1',
+        [pacienteId]
+      );
+
+      if (!pacienteResult.rowCount) {
+        throw new Error('El paciente seleccionado no existe.');
+      }
+
+      const paciente = {
+        id: pacienteResult.rows[0].id,
+        nombreCompleto: pacienteResult.rows[0].nombre_completo,
+      };
+
+      const cita = {
+        id,
+        pacienteId,
+        fechaHora: fechaCita.toISOString(),
+        modalidad,
+        motivo,
+        notas,
+        createdAt: citaResult.rows[0].created_at.toISOString(),
+      };
+
+      await client.query(
+        `
+          UPDATE citas
+          SET
+            paciente_id = $2,
+            fecha_hora = $3,
+            modalidad = $4,
+            motivo = $5,
+            notas = $6
+          WHERE id = $1
+        `,
+        [id, pacienteId, cita.fechaHora, modalidad, motivo || null, notas || null]
+      );
+
+      await client.query('DELETE FROM recordatorios WHERE cita_id = $1', [id]);
+
+      const nuevosRecordatorios = buildReminderEntries(cita, paciente);
+
+      for (const recordatorio of nuevosRecordatorios) {
+        await insertReminderWithClient(client, recordatorio);
+      }
+
+      return {
+        ...cita,
+        pacienteNombre: paciente.nombreCompleto,
+        recordatorios: nuevosRecordatorios,
+      };
+    });
+  }
+
+  const data = readData();
+  const citaIndex = data.citas.findIndex((item) => item.id === id);
+
+  if (citaIndex === -1) {
+    throw new Error('La cita no existe.');
+  }
+
+  const paciente = data.pacientes.find((item) => item.id === pacienteId);
+
+  if (!paciente) {
+    throw new Error('El paciente seleccionado no existe.');
+  }
+
+  const updatedCita = {
+    ...data.citas[citaIndex],
+    pacienteId,
+    fechaHora: fechaCita.toISOString(),
+    modalidad,
+    motivo,
+    notas,
+  };
+
+  data.citas[citaIndex] = updatedCita;
+  data.recordatorios = data.recordatorios.filter((item) => item.citaId !== id);
+  const nuevosRecordatorios = buildReminderEntries(updatedCita, paciente);
+  data.recordatorios.push(...nuevosRecordatorios);
+  writeData(data);
+
+  return enrichCita(updatedCita, data.pacientes, data.recordatorios);
 };
 
 const deleteCita = async (citaId) => {
@@ -290,4 +424,4 @@ const deleteCita = async (citaId) => {
   };
 };
 
-module.exports = { createCita, deleteCita, listCitas };
+module.exports = { createCita, deleteCita, listCitas, updateCita };
