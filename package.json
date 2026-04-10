@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "description": "Backend en Node.js con Express para recordatorio de citas",
   "main": "index.js",
+  "packageManager": "npm@11.11.0",
   "scripts": {
     "start": "node index.js"
+  },
+  "engines": {
+    "node": "22.x"
   },
   "keywords": [],
   "author": "",
