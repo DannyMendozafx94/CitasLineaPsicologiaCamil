@@ -5,6 +5,10 @@ const {
   ADMIN_NAME,
   SESSION_COOKIE_NAME,
 } = require('../config/admin');
+const {
+  clearLoginRateLimit,
+  registerFailedLogin,
+} = require('./loginRateLimitService');
 
 const SESSION_DURATION_MS = 12 * 60 * 60 * 1000;
 const REMEMBER_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
@@ -105,9 +109,11 @@ const serializeSessionCookie = (session) => {
 
 module.exports = {
   clearSession,
+  clearLoginRateLimit,
   createSession,
   getSessionByToken,
   parseCookies,
+  registerFailedLogin,
   readCookieToken,
   serializeSessionCookie,
 };

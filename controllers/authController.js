@@ -1,7 +1,9 @@
 const {
+  clearLoginRateLimit,
   createSession,
   clearSession,
   getSessionByToken,
+  registerFailedLogin,
   readCookieToken,
   serializeSessionCookie,
 } = require('../services/authService');
@@ -28,6 +30,7 @@ const loginAdmin = (req, res) => {
   try {
     const { email, password, rememberMe } = req.body;
     const session = createSession({ email, password, rememberMe });
+    clearLoginRateLimit(req, email);
 
     res.setHeader('Set-Cookie', serializeSessionCookie(session));
     return res.json({
@@ -35,7 +38,18 @@ const loginAdmin = (req, res) => {
       user: session.user,
     });
   } catch (error) {
-    return res.status(401).json({ error: error.message });
+    const state = registerFailedLogin(req, req.body?.email || '');
+
+    if (state.isBlocked) {
+      res.setHeader('Retry-After', String(state.retryAfterSeconds));
+      return res.status(429).json({
+        error: `Demasiados intentos. Intenta de nuevo en ${state.retryAfterSeconds} segundos.`,
+      });
+    }
+
+    return res.status(401).json({
+      error: `${error.message} Te quedan ${state.remainingAttempts} intentos antes del bloqueo temporal.`,
+    });
   }
 };
 

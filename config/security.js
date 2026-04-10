@@ -1,0 +1,9 @@
+const LOGIN_MAX_ATTEMPTS = 5;
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_LOCKOUT_MS = 15 * 60 * 1000;
+
+module.exports = {
+  LOGIN_MAX_ATTEMPTS,
+  LOGIN_WINDOW_MS,
+  LOGIN_LOCKOUT_MS,
+};
