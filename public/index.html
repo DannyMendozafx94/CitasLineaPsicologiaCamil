@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
@@ -55,6 +55,56 @@
               <span>Recordatorios enviados</span>
               <strong id="sentRemindersCount">0</strong>
             </article>
+          </div>
+        </section>
+
+        <section class="panel calendar-panel">
+          <div class="panel-header">
+            <div>
+              <h2>Calendario de agendamientos</h2>
+              <p class="panel-copy">
+                Revisa por mes que dias estan libres y cuales ya tienen citas.
+              </p>
+            </div>
+            <div class="calendar-controls">
+              <button id="calendarPrevButton" class="secondary-button" type="button">
+                Mes anterior
+              </button>
+              <strong id="calendarMonthLabel" class="calendar-month-label"></strong>
+              <button id="calendarNextButton" class="secondary-button" type="button">
+                Mes siguiente
+              </button>
+            </div>
+          </div>
+
+          <div class="calendar-layout">
+            <div>
+              <div class="calendar-legend">
+                <span><i class="legend-dot legend-free"></i> Disponible</span>
+                <span><i class="legend-dot legend-busy"></i> Con cita</span>
+                <span><i class="legend-dot legend-selected"></i> Dia seleccionado</span>
+              </div>
+              <div class="calendar-weekdays">
+                <span>Lun</span>
+                <span>Mar</span>
+                <span>Mie</span>
+                <span>Jue</span>
+                <span>Vie</span>
+                <span>Sab</span>
+                <span>Dom</span>
+              </div>
+              <div id="calendarGrid" class="calendar-grid"></div>
+            </div>
+
+            <aside class="calendar-sidebar">
+              <h3 id="selectedDateLabel">Selecciona un dia</h3>
+              <p id="selectedDateSummary" class="calendar-summary">
+                Aqui veras las citas programadas para el dia elegido.
+              </p>
+              <div id="selectedDateAppointments" class="stack-list empty-state">
+                Aun no hay citas para este dia.
+              </div>
+            </aside>
           </div>
         </section>
 

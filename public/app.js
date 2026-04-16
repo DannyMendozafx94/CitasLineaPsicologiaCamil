@@ -1,4 +1,4 @@
-const patientForm = document.getElementById('patientForm');
+﻿const patientForm = document.getElementById('patientForm');
 const appointmentForm = document.getElementById('appointmentForm');
 const patientSelect = document.getElementById('patientSelect');
 const refreshButton = document.getElementById('refreshButton');
@@ -12,10 +12,23 @@ const appointmentCancelButton = document.getElementById('appointmentCancelButton
 const feedback = document.getElementById('feedback');
 const adminName = document.getElementById('adminName');
 const adminEmail = document.getElementById('adminEmail');
+const calendarPrevButton = document.getElementById('calendarPrevButton');
+const calendarNextButton = document.getElementById('calendarNextButton');
+const calendarMonthLabel = document.getElementById('calendarMonthLabel');
+const calendarGrid = document.getElementById('calendarGrid');
+const selectedDateLabel = document.getElementById('selectedDateLabel');
+const selectedDateSummary = document.getElementById('selectedDateSummary');
+const selectedDateAppointments = document.getElementById('selectedDateAppointments');
 
 const formState = {
   editingPatientId: null,
   editingAppointmentId: null,
+};
+
+const calendarState = {
+  month: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  selectedDateKey: '',
+  appointments: [],
 };
 
 const formatDateTime = (value) => {
@@ -77,6 +90,94 @@ const toDatetimeLocalValue = (value) => {
   const date = new Date(value);
   const offsetMs = date.getTimezoneOffset() * 60 * 1000;
   return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+};
+
+const capitalize = (text) => {
+  if (!text) {
+    return '';
+  }
+
+  return text.charAt(0).toUpperCase() + text.slice(1);
+};
+
+const toDateKey = (value) => {
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const parseDateKey = (value) => {
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};
+
+const formatDateLabel = (value) => {
+  return capitalize(
+    parseDateKey(value).toLocaleDateString('es-EC', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+  );
+};
+
+const formatTime = (value) => {
+  return new Date(value).toLocaleTimeString('es-EC', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+const getAppointmentsForDate = (dateKey) => {
+  return calendarState.appointments
+    .filter((appointment) => toDateKey(appointment.fechaHora) === dateKey)
+    .sort((a, b) => new Date(a.fechaHora) - new Date(b.fechaHora));
+};
+
+const syncSelectedDate = () => {
+  const year = calendarState.month.getFullYear();
+  const month = calendarState.month.getMonth();
+  const today = new Date();
+  const monthAppointments = calendarState.appointments.filter((appointment) => {
+    const appointmentDate = new Date(appointment.fechaHora);
+    return (
+      appointmentDate.getFullYear() === year && appointmentDate.getMonth() === month
+    );
+  });
+  const appointmentKeys = [
+    ...new Set(monthAppointments.map((item) => toDateKey(item.fechaHora))),
+  ];
+  const selectedDate = calendarState.selectedDateKey
+    ? parseDateKey(calendarState.selectedDateKey)
+    : null;
+  const selectedMatchesMonth =
+    selectedDate &&
+    selectedDate.getFullYear() === year &&
+    selectedDate.getMonth() === month;
+
+  if (selectedMatchesMonth) {
+    return;
+  }
+
+  if (today.getFullYear() === year && today.getMonth() === month) {
+    calendarState.selectedDateKey = toDateKey(today);
+    return;
+  }
+
+  if (appointmentKeys.length) {
+    [calendarState.selectedDateKey] = appointmentKeys;
+    return;
+  }
+
+  calendarState.selectedDateKey = toDateKey(new Date(year, month, 1));
 };
 
 const resetPatientFormState = () => {
@@ -277,6 +378,107 @@ const renderReminders = (reminders) => {
   });
 };
 
+const renderSelectedDateAppointments = () => {
+  const appointments = getAppointmentsForDate(calendarState.selectedDateKey);
+  selectedDateLabel.textContent = formatDateLabel(calendarState.selectedDateKey);
+
+  if (!appointments.length) {
+    selectedDateSummary.textContent = 'No hay citas registradas para este dia.';
+    selectedDateAppointments.className = 'stack-list empty-state';
+    selectedDateAppointments.textContent =
+      'Este dia esta disponible para nuevos agendamientos.';
+    return;
+  }
+
+  const totalText =
+    appointments.length === 1 ? '1 cita programada' : `${appointments.length} citas programadas`;
+  selectedDateSummary.textContent = `${totalText} para esta fecha.`;
+  selectedDateAppointments.className = 'stack-list';
+  selectedDateAppointments.innerHTML = '';
+
+  appointments.forEach((appointment) => {
+    const card = document.createElement('article');
+    card.className = 'stack-card calendar-appointment-card';
+    card.innerHTML = `
+      <h3>${formatTime(appointment.fechaHora)} - ${appointment.pacienteNombre}</h3>
+      <p>Modalidad: ${appointment.modalidad}</p>
+      <p>Motivo: ${appointment.motivo || 'Seguimiento general'}</p>
+    `;
+
+    const badgeRow = document.createElement('div');
+    badgeRow.className = 'badge-row';
+    badgeRow.appendChild(
+      createBadge(`${appointment.recordatorios.length} recordatorios`, 'neutral')
+    );
+    card.appendChild(badgeRow);
+    selectedDateAppointments.appendChild(card);
+  });
+};
+
+const renderCalendar = () => {
+  syncSelectedDate();
+
+  const year = calendarState.month.getFullYear();
+  const month = calendarState.month.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const totalDays = new Date(year, month + 1, 0).getDate();
+  const leadingEmptyDays = (firstDay.getDay() + 6) % 7;
+  const todayKey = toDateKey(new Date());
+
+  calendarMonthLabel.textContent = capitalize(
+    calendarState.month.toLocaleDateString('es-EC', {
+      month: 'long',
+      year: 'numeric',
+    })
+  );
+
+  calendarGrid.innerHTML = '';
+
+  for (let index = 0; index < leadingEmptyDays; index += 1) {
+    const emptyCell = document.createElement('span');
+    emptyCell.className = 'calendar-day calendar-day-empty';
+    emptyCell.setAttribute('aria-hidden', 'true');
+    calendarGrid.appendChild(emptyCell);
+  }
+
+  for (let day = 1; day <= totalDays; day += 1) {
+    const date = new Date(year, month, day);
+    const dateKey = toDateKey(date);
+    const appointments = getAppointmentsForDate(dateKey);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'calendar-day';
+
+    if (appointments.length) {
+      button.classList.add('calendar-day-busy');
+    } else {
+      button.classList.add('calendar-day-free');
+    }
+
+    if (dateKey === todayKey) {
+      button.classList.add('calendar-day-today');
+    }
+
+    if (dateKey === calendarState.selectedDateKey) {
+      button.classList.add('calendar-day-selected');
+    }
+
+    button.innerHTML = `
+      <span class="calendar-day-number">${day}</span>
+      <span class="calendar-day-meta">
+        ${appointments.length ? `${appointments.length} cita${appointments.length > 1 ? 's' : ''}` : 'Libre'}
+      </span>
+    `;
+    button.addEventListener('click', () => {
+      calendarState.selectedDateKey = dateKey;
+      renderCalendar();
+    });
+    calendarGrid.appendChild(button);
+  }
+
+  renderSelectedDateAppointments();
+};
+
 const fillPatientSelect = (patients) => {
   patientSelect.innerHTML = '<option value="">Selecciona un paciente</option>';
 
@@ -311,16 +513,21 @@ const fetchJson = async (url, options) => {
 };
 
 const loadDashboard = async () => {
-  const session = await fetchJson('/api/auth/session');
+  const [session, data, appointments] = await Promise.all([
+    fetchJson('/api/auth/session'),
+    fetchJson('/api/dashboard'),
+    fetchJson('/api/citas'),
+  ]);
+
   adminName.textContent = session.user.name;
   adminEmail.textContent = session.user.email;
-
-  const data = await fetchJson('/api/dashboard');
   setCounts(data.resumen);
   renderPatients(data.pacientes);
   renderAppointments(data.citas);
   renderReminders(data.recordatorios);
   fillPatientSelect(data.todosLosPacientes);
+  calendarState.appointments = appointments;
+  renderCalendar();
 };
 
 patientForm.addEventListener('submit', async (event) => {
@@ -412,6 +619,26 @@ logoutButton.addEventListener('click', async () => {
   } catch (error) {
     setFeedback(error.message, true);
   }
+});
+
+calendarPrevButton.addEventListener('click', () => {
+  calendarState.month = new Date(
+    calendarState.month.getFullYear(),
+    calendarState.month.getMonth() - 1,
+    1
+  );
+  calendarState.selectedDateKey = '';
+  renderCalendar();
+});
+
+calendarNextButton.addEventListener('click', () => {
+  calendarState.month = new Date(
+    calendarState.month.getFullYear(),
+    calendarState.month.getMonth() + 1,
+    1
+  );
+  calendarState.selectedDateKey = '';
+  renderCalendar();
 });
 
 loadDashboard().catch((error) => {
