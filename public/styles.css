@@ -7,6 +7,8 @@
   --line: rgba(108, 83, 61, 0.15);
   --accent: #b66342;
   --accent-dark: #7f3f28;
+  --lilac: #b79ae6;
+  --lilac-dark: #8d72c7;
   --success: #2d8f6f;
   --warning: #d38b25;
   --shadow: 0 24px 50px rgba(86, 60, 41, 0.12);
@@ -217,7 +219,7 @@ label,
 }
 
 .legend-busy {
-  background: rgba(182, 99, 66, 0.25);
+  background: rgba(183, 154, 230, 0.5);
 }
 
 .legend-selected {
@@ -274,8 +276,8 @@ label,
 }
 
 .calendar-day-busy {
-  border-color: rgba(182, 99, 66, 0.25);
-  background: linear-gradient(180deg, rgba(255, 250, 245, 1) 0%, rgba(255, 241, 235, 1) 100%);
+  border-color: rgba(141, 114, 199, 0.35);
+  background: linear-gradient(180deg, rgba(247, 242, 255, 1) 0%, rgba(237, 228, 255, 1) 100%);
 }
 
 .calendar-day-selected {
